@@ -58,6 +58,7 @@ void Therenect::setup()
 	
 	amplset		= amplitude;
 	freqset		= frequency;
+	range		= 75;
 
 	volumePoint.x = kinect.width/4;
 	volumePoint.y = 4*kinect.height/5;
@@ -95,6 +96,10 @@ void Therenect::setup()
 	wave_names.push_back("Sawtooth");
 	wave_names.push_back("Squarewave");
 	gui.addTextDropDown("Waveform", "WAVE", 0, wave_names);
+	
+	
+	gui.addSlider("Frequency Range", "FREQ_RANGE",(range-50)*2, 0.0, 100.0, false);	
+
 	
 	vector <string> scale_names;
 	scale_names.push_back("Continuous");
@@ -160,12 +165,12 @@ void Therenect::update()
 		
 		float dx = (pitchPoint.x - x)/(float)kinect.width;
 		float dy = (pitchPoint.y - y)/(float)kinect.width;
-		float dz = (pitchPoint.z - dpt)/127.0f;
+		float dz = (pitchPoint.z - dpt)/255.0f;
 		float pitchDistance = dx*dx + dy*dy + dz*dz;
 
 		dx = (volumePoint.x - x)/(float)kinect.width;
 		dy = (volumePoint.y - y)/(float)kinect.height;
-		dz = (volumePoint.z - dpt)/127.0f;
+		dz = (volumePoint.z - dpt)/255.0f;
 		float volumeDistance = dx*dx + dy*dy + dz*dz;
 		
 		if (pitchDistance<0.064f) {
@@ -183,7 +188,7 @@ void Therenect::update()
 			}
 		} else if (volumeDistance<0.064f) {
 			pix[i] = 255-(unsigned char)floor(volumeDistance*4000.0f);
-			double weight = (pix[i]*pix[i])/255.0f;
+			double weight = (pix[i]*pix[i])/127.0f;
 
 			vsum+=weight;
 			vxsum+=x*weight;
@@ -218,13 +223,9 @@ void Therenect::update()
 	if (vsum>0) vReferencePoint.set(vxsum/vsum, vysum/vsum, vzsum/vsum);
 
 	
-	
-	
 
-	pControlPoint=pReferencePoint;
-	vControlPoint=vReferencePoint;
-	
-	if (vReferencePoint.x<0) {
+	if (vControlPoint.z>127)  vControlPoint=vReferencePoint;	
+	else if (vReferencePoint.x<0) {
 		for (int i=0;i<3;i++) {
 			if (vPointSmoothed[i]!=NULL) {
 				delete vPointSmoothed[i];
@@ -243,7 +244,9 @@ void Therenect::update()
 		vControlPoint.z = vPointSmoothed[2]->correct(vReferencePoint.z);
 	}
 
-	if (pReferencePoint.x<0) {
+
+	if (pControlPoint.z>127) pControlPoint=pReferencePoint;
+	else if (pReferencePoint.x<0) {
 		for (int i=0;i<3;i++) {
 			if (pPointSmoothed[i]!=NULL) {
 				delete pPointSmoothed[i];
@@ -268,14 +271,13 @@ void Therenect::update()
 	
 	float dx = (pControlPoint.x- pitchPoint.x)/(float)kinect.width;
 	float dy = (pControlPoint.y- pitchPoint.y)/(float)kinect.width;
-	float dz = (pControlPoint.z- pitchPoint.z)/127.0f;
+	float dz = (pControlPoint.z- pitchPoint.z)/255.0f;
 	
 	if (!manually) {
 		double pitch_dist = dx*dx + dy*dy + dz*dz;
-		double pitch = 5-(50*pitch_dist);
-		freqset = 32.7*pow(2,pitch);
-		if (freqset<32.7) freqset=1;
-		else if (freqset>2093) freqset=2093;
+		double pitch = ((range/10.0f)-1)-(range*pitch_dist);
+		freqset = 8.175*pow(2,pitch);
+		if (freqset<8.175) freqset=1;
 	}
 		
 	dx = (vControlPoint.x- volumePoint.x)/(float)kinect.width;
@@ -290,11 +292,6 @@ void Therenect::update()
 		else if (amplset<0.0f) amplset=0.0f;
 		if (freqset==1) amplset=0.0f;
 	}
-	
-	/*if (midi_on) {
-		midi.sendControlChange(1, 100, (frequency/2093.0f)*16383);
-		midi.sendControlChange(1, 2, (amplitude/0.5f)*127);
-	}*/
 	
 	gui.update();
 }
@@ -442,19 +439,14 @@ void Therenect::audioRequested(float *output, int bufferSize, int nChannels){
 //								C C D D E F F G G A A H
 	int pentatonic_table[12] = {0,0,2,2,4,4,7,7,7,9,9,9 };
 //								C C D D E E G G G A A A
-		
-	float sample = 0;
-	float phase = 0;
 	
-	float step = pow(2,fabs(frequency-freqset)/(sampleRate/6))-0.96f;
-	//if (fabs(frequency-freqset)>0) printf("%f %f %f\n",frequency, freqset, step);
 	
-	for (int i = 0; i < bufferSize; i++){
-		
+	if (scale) {
+
 		int new_midi_note;
 		if (scale==1) {
 			new_midi_note = 69 + round(12.0f * log2(freqset/440.0f));
-			freqset = 440.0f * pow(2, (new_midi_note-69)/12.0f);
+			frequency = 440.0f * pow(2, (new_midi_note-69)/12.0f);
 			//printf("%d\n",midi_note);
 			//printf("%d %f\n",midi_note, frequency);
 		} else if (scale==2) {
@@ -462,7 +454,7 @@ void Therenect::audioRequested(float *output, int bufferSize, int nChannels){
 			int note = new_midi_note%12;
 			int base_note = new_midi_note - note;
 			new_midi_note = base_note + ionian_table[note];
-			freqset = 440.0f * pow(2, (new_midi_note-69)/12.0f);
+			frequency = 440.0f * pow(2, (new_midi_note-69)/12.0f);
 			//printf("%d\n",midi_note);
 			//printf("%d %f\n",midi_note, frequency);
 		} else if (scale==3) {
@@ -471,27 +463,42 @@ void Therenect::audioRequested(float *output, int bufferSize, int nChannels){
 			int note = new_midi_note%12;
 			int base_note = new_midi_note - note;
 			new_midi_note = base_note + pentatonic_table[note];
-			freqset = 440.0f * pow(2, (new_midi_note-69)/12.0f);
+			frequency = 440.0f * pow(2, (new_midi_note-69)/12.0f);
 			
 			//printf("%d\n",midi_note);
 			//printf("%d %f\n",midi_note, frequency);
 		}
 		
-		if (scale) {
-			
-			frequency = freqset;
-			if (midi_on) {
-				if (frequency<32.7) new_midi_note=0;
-				if (new_midi_note!=midi_note) {
-					//printf("%f %d %d\n",freqset,midi_note, new_midi_note);
-					int velocity = floor((amplset/0.5f)*127);
-					midi.sendNoteOff(midi_channel, midi_note, 0);
-					midi.sendNoteOn(midi_channel, new_midi_note, velocity);
-					midi_note = new_midi_note;
-				}
-				return;
+		if (midi_on) {
+			if (frequency<32.7) new_midi_note=0;
+			int velocity = floor((amplset/0.5f)*127);
+			midi.sendControlChange(midi_channel, 7, velocity);
+			if (new_midi_note!=midi_note) {
+				//printf("%f %d %d\n",freqset,midi_note, new_midi_note);
+				midi.sendNoteOff(midi_channel, midi_note, 0);
+				midi.sendNoteOn(midi_channel, new_midi_note, 127);
+				midi_note = new_midi_note;
 			}
-		} else if (frequency!=freqset) {
+			
+			for (int i = 0; i < bufferSize; i++){
+				output[i] = 0.0f;
+				sound_data[i] = 0.0f;
+			}
+			return;
+		}
+		
+	}  
+
+	
+	float sample = 0;
+	float phase = 0;
+	
+	float step = pow(2,fabs(frequency-freqset)/(sampleRate/6))-0.96f;
+	//if (fabs(frequency-freqset)>0) printf("%f %f %f\n",frequency, freqset, step);
+	
+	for (int i = 0; i < bufferSize; i++){
+		
+		if (frequency!=freqset) {
 			float freqdiff = freqset-frequency;
 			
 			if (fabs(freqdiff)<0.04f) frequency = freqset;
@@ -702,7 +709,10 @@ void Therenect::eventsIn(guiCallbackData & data){
 		oscmode = data.getInt(0);
 	} else if (eventName=="SCALE") {
 		scale = data.getInt(0);
+	} else if (eventName=="FREQ_RANGE") {
+		range = 50.0f+data.getFloat(0)/2.0f;
 	}
+	
 	
 }
 

@@ -49,6 +49,7 @@ class Therenect : public ofBaseApp
 		int sampleRate, bufferSize;
 		float *sound_data;
 		
+		float range;
 		float amplitude, frequency;
 		float amplset, freqset;
 		float rotation;
