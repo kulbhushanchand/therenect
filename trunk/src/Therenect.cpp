@@ -76,6 +76,7 @@ void Therenect::setup()
 	manually = false;
 	scale = 0;
 	
+	midi_note = 0;
 	midi_on = false;
 	midi_channel = 1;
 	midi.listPorts();
@@ -111,9 +112,11 @@ void Therenect::setup()
 	gui.addSlider("Antenna distance", "ANTENNA_DISTANCE", 255-position, 0.0, 255.0, true);	
 	gui.addSlider("Kinect angle", "KINECT_ANGLE", 15.0, -32.0, 32.0, true);	
 	
-	gui.addToggle("MIDI enabled", "MIDI_ENABLED", 0);		
-	gui.addTextDropDown("MIDI device", "MIDI_DEVICE", 0, midi.portNames);
-	gui.addSlider("MIDI channel", "MIDI_CHANNEL", 1.0, 1.0, 16.0, true);	
+	if (midi.portNames.size()>0) {
+		gui.addToggle("MIDI enabled", "MIDI_ENABLED", midi_on);		
+		gui.addTextDropDown("MIDI device", "MIDI_DEVICE", 0, midi.portNames);
+		gui.addSlider("MIDI channel", "MIDI_CHANNEL", 1.0, 1.0, 16.0, true);
+	} else midi_on = false;
 	
 	gui.setupEvents();
 	gui.enableEvents();
