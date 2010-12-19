@@ -633,12 +633,17 @@ void Therenect::keyPressed (int key)
 				midi_note = 0;
 				midi_on = true;
 				gui.setValueB("MIDI_ENABLED", 1, 0);
-
+				if (!scale) { 
+					scale=1;
+					gui.setValueI("SCALE", scale, 0);
+				}
 			} else {
 				midi_on = false;
 				midi.closePort();
 				midi_note = 0;
 				gui.setValueB("MIDI_ENABLED", 0, 0);
+				scale=0;
+				gui.setValueI("SCALE", scale, 0);
 			}
 			break;
 	}
@@ -699,8 +704,17 @@ void Therenect::eventsIn(guiCallbackData & data){
 		tiltAngle = data.getInt(0);
 	} else if (eventName=="MIDI_ENABLED") {
 		midi_on = data.getInt(0);		
-		if (midi_on) midi.openPort(gui.getValueI("MIDI_DEVICE", 0));
-		else midi.closePort();
+		if (midi_on) {
+			midi.openPort(gui.getValueI("MIDI_DEVICE", 0));
+			if (!scale) { 
+				scale=1;
+				gui.setValueI("SCALE", scale, 0);
+			}
+		} else {
+			midi.closePort();
+			scale = 0;
+			gui.setValueI("SCALE", scale, 0);
+		}
 	} else if (eventName=="MIDI_DEVICE") {
 		if (midi_on) {
 			midi.closePort();
