@@ -67,7 +67,7 @@ class Therenect : public ofBaseApp
 		bool drawing;
 	
 		ofxMidiOut midi;
-		int midi_note, midi_channel;
+		unsigned char midi_note, midi_channel;
 		bool midi_on;
 	
 		int position;
