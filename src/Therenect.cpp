@@ -27,7 +27,7 @@ ofxCvKalman *pPointSmoothed[3];
 //--------------------------------------------------------------
 void Therenect::setup()
 {
-	ofSetWindowTitle("Therenect 0.9");
+	ofSetWindowTitle("Therenect 0.9.1");
 	ofSetVerticalSync(true);
 	
 	kinect.init();
