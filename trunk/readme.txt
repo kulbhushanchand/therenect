@@ -3,7 +3,7 @@ The Therenect is a virtual Theremin for the Kinect controller. It defines two vi
 The application provides the following configuration options:
 
 Oscillator: Theremin, Sinewave, Sawtooth, Squarewave
-Tonality: continuos mode or  Chromatic, Ionian and Pentatonic scales
+Tonality: continuos mode or Chromatic, Ionian and Pentatonic scales
 MIDI: optionally send MIDI note on/off events to the selected device & channel
 Kinect: adjust the Sensor camera angle
 

@@ -27,7 +27,7 @@ ofxCvKalman *pPointSmoothed[3];
 //--------------------------------------------------------------
 void Therenect::setup()
 {
-	ofSetWindowTitle("Therenect 0.9.1");
+	ofSetWindowTitle("Therenect 0.9.2");
 	ofSetVerticalSync(true);
 	
 	kinect.init();
@@ -443,13 +443,12 @@ void Therenect::audioRequested(float *output, int bufferSize, int nChannels){
 	int pentatonic_table[12] = {0,0,2,2,4,4,7,7,7,9,9,9 };
 //								C C D D E E G G G A A A
 	
-	
 	if (scale) {
-
+		
 		int new_midi_note;
 		if (scale==1) {
 			new_midi_note = 69 + round(12.0f * log2(freqset/440.0f));
-			frequency = 440.0f * pow(2, (new_midi_note-69)/12.0f);
+			freqset = 440.0f * pow(2, (new_midi_note-69)/12.0f);
 			//printf("%d\n",midi_note);
 			//printf("%d %f\n",midi_note, frequency);
 		} else if (scale==2) {
@@ -457,20 +456,20 @@ void Therenect::audioRequested(float *output, int bufferSize, int nChannels){
 			int note = new_midi_note%12;
 			int base_note = new_midi_note - note;
 			new_midi_note = base_note + ionian_table[note];
-			frequency = 440.0f * pow(2, (new_midi_note-69)/12.0f);
+			freqset = 440.0f * pow(2, (new_midi_note-69)/12.0f);
 			//printf("%d\n",midi_note);
 			//printf("%d %f\n",midi_note, frequency);
 		} else if (scale==3) {
-			
 			new_midi_note = 69 + round(12 * log2(freqset/440.0f));
 			int note = new_midi_note%12;
 			int base_note = new_midi_note - note;
 			new_midi_note = base_note + pentatonic_table[note];
-			frequency = 440.0f * pow(2, (new_midi_note-69)/12.0f);
+			freqset = 440.0f * pow(2, (new_midi_note-69)/12.0f);
 			
 			//printf("%d\n",midi_note);
 			//printf("%d %f\n",midi_note, frequency);
 		}
+		frequency = freqset;
 		
 		if (midi_on) {
 			if (frequency<32.7) new_midi_note=0;
@@ -491,7 +490,6 @@ void Therenect::audioRequested(float *output, int bufferSize, int nChannels){
 		}
 		
 	}  
-
 	
 	float sample = 0;
 	float phase = 0;
@@ -713,6 +711,7 @@ void Therenect::eventsIn(guiCallbackData & data){
 		} else {
 			midi.closePort();
 			scale = 0;
+			midi_note = 0;
 			gui.setValueI("SCALE", scale, 0);
 		}
 	} else if (eventName=="MIDI_DEVICE") {
