@@ -11,9 +11,9 @@ Acknowledgments: This application has been created by Martin Kaltenbrunner at th
 
 In order to compile this application you will need a working installation of OpenFrameworks and the ofxKinect extension. The provided application has been compiled as a Universal binary for Mac OS 10.5 or later.
 
-© 2010 by Martin Kaltenbrunner <modin@yuri.at>
-Interface Culture Lab, KunstuniversitŠt Linz
+ï¿½ 2010 by Martin Kaltenbrunner <modin@yuri.at>
+Interface Culture Lab, Kunstuniversitï¿½t Linz
 http://www.interface.ufg.ac.at/
 
-
+test commit
 
