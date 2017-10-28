@@ -1,4 +1,4 @@
-The Therenect is a virtual Theremin for the Kinect controller. It defines two virtual antenna points, which allow controlling the pitch and volume of a simple oscillator. The distance to these points can be adjusted by freely moving the hand in three dimensions or by reshaping the hand, which allows gestures that should be quite similar to playing an actual Theremin.
+﻿The Therenect is a virtual Theremin for the Kinect controller. It defines two virtual antenna points, which allow controlling the pitch and volume of a simple oscillator. The distance to these points can be adjusted by freely moving the hand in three dimensions or by reshaping the hand, which allows gestures that should be quite similar to playing an actual Theremin.
 
 The application provides the following configuration options:
 
@@ -17,3 +17,5 @@ http://www.interface.ufg.ac.at/
 
 test commit
 
+
+change from notepad
